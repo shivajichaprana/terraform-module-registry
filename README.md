@@ -26,6 +26,8 @@ resource — no extra flags required to be safe.
 | Module | Summary | Status |
 |--------|---------|--------|
 | [`s3-bucket`](./modules/s3-bucket) | Hardened S3 bucket with encryption, public-access blocking, and TLS enforcement. | stable |
+| [`vpc`](./modules/vpc) | Multi-AZ VPC with public/private subnets, NAT egress, and encrypted VPC Flow Logs. | stable |
+| [`iam-role`](./modules/iam-role) | Reusable IAM role with service/account/OIDC trust, policies, and a permissions boundary. | stable |
 
 ## Consuming a module
 

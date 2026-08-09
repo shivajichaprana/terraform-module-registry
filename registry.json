@@ -13,6 +13,24 @@
       "min_terraform_version": "1.6.0",
       "examples": ["basic", "complete"],
       "status": "stable"
+    },
+    {
+      "name": "vpc",
+      "path": "modules/vpc",
+      "summary": "Multi-AZ VPC: public/private subnets, per-AZ or single NAT, and encrypted VPC Flow Logs.",
+      "providers": ["aws"],
+      "min_terraform_version": "1.6.0",
+      "examples": ["basic", "complete"],
+      "status": "stable"
+    },
+    {
+      "name": "iam-role",
+      "path": "modules/iam-role",
+      "summary": "Reusable IAM role: service/account/OIDC trust, managed and inline policies, permissions boundary.",
+      "providers": ["aws"],
+      "min_terraform_version": "1.6.0",
+      "examples": ["basic", "complete"],
+      "status": "stable"
     }
   ]
 }
