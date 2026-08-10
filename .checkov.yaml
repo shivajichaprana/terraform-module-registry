@@ -1,0 +1,28 @@
+# Checkov configuration for the module registry.
+#
+# Scans the module sources for security misconfiguration. A small set of checks
+# is skipped where the control is a per-consumer decision the base module cannot
+# make on the caller's behalf; each skip is justified below.
+
+framework:
+  - terraform
+
+directory:
+  - modules
+
+quiet: true
+compact: true
+download-external-modules: false
+
+skip-check:
+  # Server access logging is exposed as an optional input (`logging`); a base
+  # bucket module cannot hardcode a central log-target bucket for every caller.
+  - CKV_AWS_18
+  # Cross-region replication is a per-consumer durability decision, not a
+  # property every bucket should carry.
+  - CKV_AWS_144
+  # Event notifications are opt-in and consumer-specific.
+  - CKV2_AWS_62
+  # Restricting the account default security group is an account-baseline
+  # concern owned elsewhere, not something a per-VPC module should manage.
+  - CKV2_AWS_12

@@ -19,6 +19,9 @@ resource — no extra flags required to be safe.
 | `registry.json` | Machine-readable index of published modules. |
 | `modules/<name>/` | A module: `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, `README.md`. |
 | `modules/<name>/examples/` | Runnable example configurations. |
+| `tests/` | Native Terraform test harness (`*.tftest.hcl`) run against a mocked provider. |
+| `.tflint.hcl` | tflint configuration for language and AWS linting. |
+| `.checkov.yaml` | Checkov policy-scan configuration. |
 | `LICENSE` | MIT license. |
 
 ## Modules
@@ -45,13 +48,36 @@ Placeholders in examples — `<your-github-org>`, account id `123456789012`, and
 `arn:aws:kms:...:123456789012:key/<key-id>` — are illustrative; substitute your
 own values.
 
+## Testing and quality gates
+
+Every module is covered by native Terraform tests under [`tests/`](./tests).
+They run with `command = plan` against a `mock_provider "aws"`, so the whole
+suite executes offline — no credentials and no resources created. Positive runs
+assert on plan-known values (outputs, configuration arguments, resource counts);
+negative runs use `expect_failures` to confirm the input validations reject bad
+configuration.
+
+Two static scanners back the tests: `tflint` (language hygiene plus AWS resource
+rules, configured in `.tflint.hcl`) and `checkov` (security policy scan,
+configured in `.checkov.yaml`).
+
+```bash
+# Native tests
+cd tests && terraform init -backend=false && terraform test
+
+# Static analysis (from the repository root)
+tflint --chdir=modules/s3-bucket
+checkov --config-file .checkov.yaml
+```
+
 ## Contributing a module
 
 1. Create `modules/<name>/` with `main.tf`, `variables.tf`, `outputs.tf`, `versions.tf`, and a `README.md`.
 2. Add secure defaults and `validation` blocks to every input that can be misused.
 3. Provide at least a `basic` example under `examples/`.
 4. Register the module in `registry.json`.
-5. Run `terraform fmt` and `terraform validate` before opening a pull request.
+5. Add native tests under `tests/<name>.tftest.hcl` covering the secure defaults and the input validations.
+6. Run `terraform fmt`, `terraform validate`, and `terraform test` before opening a pull request.
 
 ## License
 
