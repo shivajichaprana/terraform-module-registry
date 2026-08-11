@@ -22,3 +22,12 @@ tfplan.bin
 .vscode/
 *.swp
 .DS_Store
+
+# Node tooling (release automation and commit linting)
+node_modules/
+npm-debug.log*
+.npm/
+
+# Python bytecode
+__pycache__/
+*.pyc

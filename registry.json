@@ -9,28 +9,75 @@
       "name": "s3-bucket",
       "path": "modules/s3-bucket",
       "summary": "Hardened S3 bucket: encryption on, public access blocked, ACLs disabled, TLS enforced.",
-      "providers": ["aws"],
+      "providers": [
+        "aws"
+      ],
       "min_terraform_version": "1.6.0",
-      "examples": ["basic", "complete"],
-      "status": "stable"
+      "inputs": {
+        "count": 13,
+        "required": [
+          "bucket_name"
+        ]
+      },
+      "outputs": {
+        "count": 6
+      },
+      "examples": [
+        "basic",
+        "complete"
+      ],
+      "status": "stable",
+      "content_hash": "sha256:ac83263ba6e16edbe4c2628eecbb6cdfc19d7ddb26147e1f0fcbb7b254a3918b"
     },
     {
       "name": "vpc",
       "path": "modules/vpc",
       "summary": "Multi-AZ VPC: public/private subnets, per-AZ or single NAT, and encrypted VPC Flow Logs.",
-      "providers": ["aws"],
+      "providers": [
+        "aws"
+      ],
       "min_terraform_version": "1.6.0",
-      "examples": ["basic", "complete"],
-      "status": "stable"
+      "inputs": {
+        "count": 14,
+        "required": [
+          "availability_zones",
+          "cidr_block",
+          "name"
+        ]
+      },
+      "outputs": {
+        "count": 13
+      },
+      "examples": [
+        "basic",
+        "complete"
+      ],
+      "status": "stable",
+      "content_hash": "sha256:c2ef548e6cbd382af9c9ad79876e50479ecc8c7c35d02c316492155de0894f0d"
     },
     {
       "name": "iam-role",
       "path": "modules/iam-role",
       "summary": "Reusable IAM role: service/account/OIDC trust, managed and inline policies, permissions boundary.",
-      "providers": ["aws"],
+      "providers": [
+        "aws"
+      ],
       "min_terraform_version": "1.6.0",
-      "examples": ["basic", "complete"],
-      "status": "stable"
+      "inputs": {
+        "count": 15,
+        "required": [
+          "role_name"
+        ]
+      },
+      "outputs": {
+        "count": 6
+      },
+      "examples": [
+        "basic",
+        "complete"
+      ],
+      "status": "stable",
+      "content_hash": "sha256:ecd82735b1c4f868b826209b61a64e796c6ac28e36191bcdc672aa1ad8038fce"
     }
   ]
 }

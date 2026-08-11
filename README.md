@@ -22,6 +22,9 @@ resource — no extra flags required to be safe.
 | `tests/` | Native Terraform test harness (`*.tftest.hcl`) run against a mocked provider. |
 | `.tflint.hcl` | tflint configuration for language and AWS linting. |
 | `.checkov.yaml` | Checkov policy-scan configuration. |
+| `scripts/generate_manifest.py` | Generates `registry.json` from the module sources. |
+| `.releaserc.json`, `.commitlintrc.json`, `package.json` | Release automation and commit-message linting. |
+| `CHANGELOG.md` | Generated release history. |
 | `LICENSE` | MIT license. |
 
 ## Modules
@@ -69,6 +72,22 @@ cd tests && terraform init -backend=false && terraform test
 tflint --chdir=modules/s3-bucket
 checkov --config-file .checkov.yaml
 ```
+
+## Releasing and versioning
+
+The registry is versioned as a whole and consumers pin an immutable tag (`?ref=v1.0.0`), never `main`. Releases are automated from [Conventional Commit](https://www.conventionalcommits.org/) messages: the commit history determines the next [Semantic Version](https://semver.org/), the changelog and module manifest are regenerated, and a tag and release are published.
+
+`registry.json` is never edited by hand — it is generated from the module sources by `scripts/generate_manifest.py`, which parses each module's providers, minimum Terraform version, inputs, outputs, and examples.
+
+```bash
+# Regenerate the manifest after changing a module
+npm run manifest          # python3 scripts/generate_manifest.py --write
+
+# Verify the committed manifest matches the sources
+npm run manifest:check    # python3 scripts/generate_manifest.py --check
+```
+
+See [RELEASING.md](./RELEASING.md) for the version-bump rules and the full release flow.
 
 ## Contributing a module
 
