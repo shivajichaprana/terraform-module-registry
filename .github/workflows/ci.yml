@@ -1,0 +1,172 @@
+name: registry-ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fmt:
+    name: Format check
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Terraform fmt
+        run: terraform fmt -check -diff -recursive
+
+  validate:
+    name: Validate ${{ matrix.dir }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        dir:
+          - modules/s3-bucket
+          - modules/vpc
+          - modules/iam-role
+          - modules/s3-bucket/examples/basic
+          - modules/s3-bucket/examples/complete
+          - modules/vpc/examples/basic
+          - modules/vpc/examples/complete
+          - modules/iam-role/examples/basic
+          - modules/iam-role/examples/complete
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Init (no backend)
+        run: terraform -chdir=${{ matrix.dir }} init -backend=false -input=false
+
+      - name: Validate
+        run: terraform -chdir=${{ matrix.dir }} validate
+
+  tflint:
+    name: TFLint ${{ matrix.module }}
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        module: [s3-bucket, vpc, iam-role]
+    env:
+      TFLINT_CONFIG_FILE: ${{ github.workspace }}/.tflint.hcl
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup TFLint
+        uses: terraform-linters/setup-tflint@19a52fbac37dacb22a09518e4ef6ee234f2d4987 # v4.0.0
+        with:
+          tflint_version: v0.53.0
+
+      - name: Init plugins
+        run: tflint --init
+
+      - name: Lint module
+        run: tflint --chdir=modules/${{ matrix.module }} --minimum-failure-severity=error
+
+  checkov:
+    name: Checkov policy scan
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install Checkov
+        run: python -m pip install --upgrade pip "checkov>=3,<4"
+
+      - name: Scan modules
+        run: checkov --config-file .checkov.yaml
+
+  test:
+    name: Native module tests
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.9.8
+          terraform_wrapper: false
+
+      - name: Init test harness
+        run: terraform -chdir=tests init -backend=false -input=false
+
+      - name: Run terraform test
+        run: terraform -chdir=tests test
+
+  docs:
+    name: Docs generation
+    runs-on: ubuntu-24.04
+    env:
+      TERRAFORM_DOCS_VERSION: v0.19.0
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+
+      - name: Setup Python
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b # v5.3.0
+        with:
+          python-version: "3.12"
+
+      - name: Install terraform-docs
+        run: |
+          set -euo pipefail
+          url="https://terraform-docs.io/dl/${TERRAFORM_DOCS_VERSION}/terraform-docs-${TERRAFORM_DOCS_VERSION}-linux-amd64.tar.gz"
+          curl -sSLf "$url" -o /tmp/terraform-docs.tgz
+          tar -xzf /tmp/terraform-docs.tgz -C /tmp terraform-docs
+          install -m 0755 /tmp/terraform-docs /usr/local/bin/terraform-docs
+          terraform-docs --version
+
+      - name: Generate module docs
+        run: |
+          set -euo pipefail
+          for module in s3-bucket vpc iam-role; do
+            echo "::group::terraform-docs modules/${module}"
+            out="$(terraform-docs markdown table "modules/${module}")"
+            if [ -z "$out" ]; then
+              echo "terraform-docs produced no output for modules/${module}" >&2
+              exit 1
+            fi
+            echo "$out" | head -n 20
+            echo "::endgroup::"
+          done
+
+      - name: Check module manifest is current
+        run: python3 scripts/generate_manifest.py --check
+
+  ci-complete:
+    name: CI complete
+    runs-on: ubuntu-24.04
+    needs: [fmt, validate, tflint, checkov, test, docs]
+    steps:
+      - name: Aggregate gate
+        run: echo "All required checks passed."
