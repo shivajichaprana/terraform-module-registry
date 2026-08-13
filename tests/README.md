@@ -11,6 +11,7 @@ quality gates run from.
 | `s3_bucket.tftest.hcl` | Unit tests for `modules/s3-bucket`. |
 | `vpc.tftest.hcl` | Unit tests for `modules/vpc`. |
 | `iam_role.tftest.hcl` | Unit tests for `modules/iam-role`. |
+| `examples.tftest.hcl` | Contract tests that replay every published example. |
 
 ## How the tests work
 
