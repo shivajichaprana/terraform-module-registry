@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "registry": "terraform-module-registry",
   "description": "Private library of hardened, reusable Terraform modules with secure defaults.",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "source_prefix": "github.com/<your-github-org>/terraform-module-registry//modules",
   "modules": [
     {
