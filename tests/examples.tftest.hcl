@@ -13,7 +13,16 @@
 # additionally `terraform validate`d in CI, which exercises their provider and
 # variable wiring.
 
-mock_provider "aws" {}
+mock_provider "aws" {
+  # aws_iam_role and aws_iam_policy both validate that the policy they are given
+  # is a JSON object, so the mocked document has to return real JSON rather than
+  # the placeholder string the provider mock would otherwise invent.
+  mock_data "aws_iam_policy_document" {
+    defaults = {
+      json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}"
+    }
+  }
+}
 
 # --- s3-bucket: basic example ----------------------------------------------
 # Minimal private, encrypted, TLS-only bucket using module defaults.

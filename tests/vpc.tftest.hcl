@@ -5,7 +5,16 @@
 # retention, traffic type, derived names). Negative runs prove the input
 # validations reject bad topology.
 
-mock_provider "aws" {}
+mock_provider "aws" {
+  # aws_iam_role and aws_iam_policy both validate that the policy they are given
+  # is a JSON object, so the mocked document has to return real JSON rather than
+  # the placeholder string the provider mock would otherwise invent.
+  mock_data "aws_iam_policy_document" {
+    defaults = {
+      json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}"
+    }
+  }
+}
 
 variables {
   name               = "app-vpc"
@@ -252,11 +261,11 @@ run "flow_log_custom_retention_and_kms" {
   }
 
   variables {
-    name                 = "app-vpc"
-    cidr_block           = "10.0.0.0/16"
-    availability_zones   = ["us-east-1a", "us-east-1b"]
-    private_subnet_cidrs = ["10.0.10.0/24", "10.0.11.0/24"]
-    enable_flow_logs     = true
+    name                    = "app-vpc"
+    cidr_block              = "10.0.0.0/16"
+    availability_zones      = ["us-east-1a", "us-east-1b"]
+    private_subnet_cidrs    = ["10.0.10.0/24", "10.0.11.0/24"]
+    enable_flow_logs        = true
     flow_log_retention_days = 365
     flow_log_kms_key_arn    = "arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000000"
   }

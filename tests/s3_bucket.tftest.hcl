@@ -5,7 +5,16 @@
 # through outputs, and configuration arguments set from inputs. Negative runs use
 # `expect_failures` to prove the input validations reject bad configuration.
 
-mock_provider "aws" {}
+mock_provider "aws" {
+  # aws_iam_role and aws_iam_policy both validate that the policy they are given
+  # is a JSON object, so the mocked document has to return real JSON rather than
+  # the placeholder string the provider mock would otherwise invent.
+  mock_data "aws_iam_policy_document" {
+    defaults = {
+      json = "{\"Version\":\"2012-10-17\",\"Statement\":[]}"
+    }
+  }
+}
 
 variables {
   bucket_name = "example-app-data"
