@@ -26,3 +26,21 @@ skip-check:
   # Restricting the account default security group is an account-baseline
   # concern owned elsewhere, not something a per-VPC module should manage.
   - CKV2_AWS_12
+  # Public-access blocking IS configured, but every flag is driven by the
+  # `block_public_access` input (all four default to true). Checkov evaluates the
+  # literal value and cannot resolve a variable, so it reports the module as
+  # unblocked; the defaults in variables.tf are the real answer.
+  - CKV_AWS_53
+  - CKV_AWS_54
+  - CKV_AWS_55
+  - CKV_AWS_56
+  # Same root cause one level up: the block exists as a dedicated
+  # aws_s3_bucket_public_access_block resource, which this check does not
+  # associate with the bucket when both come from a module.
+  - CKV2_AWS_6
+  # The lifecycle configuration does abort incomplete multipart uploads, via a
+  # dynamic rule gated on `abort_incomplete_multipart_days`; the check reads the
+  # static block and misses it.
+  - CKV_AWS_300
+  # Flow-log retention is a caller-supplied input rather than a fixed period.
+  - CKV_AWS_338

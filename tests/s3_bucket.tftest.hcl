@@ -50,7 +50,7 @@ run "defaults_secure_baseline" {
   }
 
   assert {
-    condition     = aws_s3_bucket_ownership_controls.this.rule[0].object_ownership == "BucketOwnerEnforced"
+    condition     = one(aws_s3_bucket_ownership_controls.this.rule).object_ownership == "BucketOwnerEnforced"
     error_message = "Object ownership should default to BucketOwnerEnforced (ACLs disabled)."
   }
 
@@ -70,12 +70,12 @@ run "defaults_secure_baseline" {
   }
 
   assert {
-    condition     = aws_s3_bucket_server_side_encryption_configuration.this.rule[0].apply_server_side_encryption_by_default[0].sse_algorithm == "AES256"
+    condition     = one(one(aws_s3_bucket_server_side_encryption_configuration.this.rule).apply_server_side_encryption_by_default).sse_algorithm == "AES256"
     error_message = "Default SSE algorithm should be AES256."
   }
 
   assert {
-    condition     = aws_s3_bucket_server_side_encryption_configuration.this.rule[0].bucket_key_enabled == false
+    condition     = one(aws_s3_bucket_server_side_encryption_configuration.this.rule).bucket_key_enabled == false
     error_message = "A bucket key only applies with KMS, so it must be off under SSE-S3."
   }
 
@@ -115,12 +115,12 @@ run "kms_encryption_and_bucket_key" {
   }
 
   assert {
-    condition     = aws_s3_bucket_server_side_encryption_configuration.this.rule[0].apply_server_side_encryption_by_default[0].kms_master_key_id == "arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000000"
+    condition     = one(one(aws_s3_bucket_server_side_encryption_configuration.this.rule).apply_server_side_encryption_by_default).kms_master_key_id == "arn:aws:kms:us-east-1:123456789012:key/00000000-0000-0000-0000-000000000000"
     error_message = "The KMS key ARN should be wired into the SSE configuration."
   }
 
   assert {
-    condition     = aws_s3_bucket_server_side_encryption_configuration.this.rule[0].bucket_key_enabled == true
+    condition     = one(aws_s3_bucket_server_side_encryption_configuration.this.rule).bucket_key_enabled == true
     error_message = "Bucket key should default on when a KMS key is set."
   }
 }
